@@ -25,8 +25,10 @@ wss.on('connection', (client) => {
  client.on('close', () => console.log('Client disconnected'))
 
  client.on('message', (incoming) => {
+ 	console.log('incoming : ', incoming)
  	const msg = JSON.parse(incoming)
  	msg.id = uuid()
+ 	msg.type = 'incomingMessage'
  	wss.broadcast(JSON.stringify(msg))
  })
 })
@@ -38,18 +40,6 @@ wss.broadcast = function(data) {
       client.send(data)
     }
   })
-}
-// Handle incoming message
-function handleIncomingMessage(data, client) {
-	console.log(data)
-	let d = JSON.parse(data)
-  const message = {
-  	id: uuid(),
-  	content: d.content,
-  	username: d.username
-  }
-  // Send the msg object as a JSON-formatted string.
-  client.send(JSON.stringify(message))
 }
 
 
