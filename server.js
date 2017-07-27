@@ -22,15 +22,26 @@ const wss = new SockectServer({ server })
 wss.on('connection', (client) => {
 	console.log('Client connected')
 		 // Set up a callback for when a client closes the socket. This usually means they closed their browser.
- client.on('close', () => console.log('Client disconnected'))
+  client.on('close', () => console.log('Client disconnected'))
 
- client.on('message', (incoming) => {
- 	console.log('incoming : ', incoming)
- 	const msg = JSON.parse(incoming)
- 	msg.id = uuid()
- 	msg.type = 'incomingMessage'
- 	wss.broadcast(JSON.stringify(msg))
- })
+  client.on('message', (incoming) => {
+ 	  console.log('incoming message: ', incoming)
+ 		const data = JSON.parse(incoming)
+ 		switch(data.type) {
+ 			case "postMessage":
+ 				data.id = uuid()
+ 				data.type = 'incomingMessage'
+ 				wss.broadcast(JSON.stringify(data))
+ 				break;
+ 			case "postNotification":
+ 				data.id = uuid()
+ 				data.type = 'incomingNotification'
+ 				wss.broadcast(JSON.stringify(data))
+ 				break;
+ 			default:
+ 				console.error('Unkown data type ', data.type)
+ 		}
+	})
 })
 
 // Broadcast - Goes through each client and sends message data
