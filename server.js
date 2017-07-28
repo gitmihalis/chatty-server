@@ -1,4 +1,5 @@
-// Server
+// Server 
+// TODO :: collect usersnames and add to client object
 const express = require('express')
 const SockectServer = require('ws').Server
 
@@ -89,7 +90,7 @@ function clientDisconnected(clients, clientId) {
   let clientsArr = Object.keys(clients).map( (key) => clients[key] )
 
 	const disconnectionMsg = {
-		type: 'disconnectNotification',
+		type: 'disconnectionNotification',
 		id: uuid(),
 		clients: clientsArr,
 	}
