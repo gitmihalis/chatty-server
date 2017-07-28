@@ -17,15 +17,17 @@ const server = express()
 const wss = new SockectServer({ server })
 
 // TODO Currently connected clients
-// const clients = {}
-
+const CLIENTS = {}
 // A callback that will run when a client connects to the server
 // When a client connects they are assigned a socket, represented by
 // the ws parameter in the callback.
 wss.on('connection', (client) => {
-	clientConnected()
+
+  const cId = uuid()
+
+	clientConnected(CLIENTS, cId)
 	//  A callback for when a client closes the socket. This usually means they closed their browser.
-  client.on('close', () => clientDisconnected() )
+  client.on('close', () => clientDisconnected(CLIENTS, cId) )
 
   client.on('message', (incoming) => {
  	  console.log('incoming message: ', incoming)
@@ -57,25 +59,41 @@ wss.broadcast = function(data) {
   })
 }
 // A client is added to clients on a connection event
-function clientConnected() {
+function clientConnected(clients, clientId) {
+  clients[clientId] = {
+    id: clientId
+  }
+  // Convert clients object to Array before sending to React app
+  let clientsArr = Object.keys(clients).map( (key) => clients[key] )
   // Setup message to be set to the client
   // Includes all currently connected clients
   const connectionMsg = {
     type: 'connectionNotification',
     id: uuid(),
-    clients: wss.clients.length,
+    clients: clientsArr,
   }
+  console.log('[^^ clientsArr] ', clientsArr)
   wss.broadcast(JSON.stringify(connectionMsg))
   console.log(`>> client connected`)
 }
 
 // Disconnection event
-function clientDisconnected() {
+function clientDisconnected(clients, clientId) {
+  const client = clients[clientId]
+  if (!client) {
+    return
+  }
+  delete clients[clientId]
+
+  // convert CLIENTS object to array before sending to React app
+  let clientsArr = Object.keys(clients).map( (key) => clients[key] )
+
 	const disconnectionMsg = {
 		type: 'disconnectNotification',
 		id: uuid(),
-		clients: wss.clients.length
-		}
+		clients: clientsArr,
+	}
+  console.log('[^^ clientsArr] ', clientsArr)
   wss.broadcast(JSON.stringify(disconnectionMsg))
   console.log(`<< client disconnected`)
 }
